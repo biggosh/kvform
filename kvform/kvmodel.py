@@ -1,6 +1,6 @@
 from django.db import models
 # from kvform import models
-from kvform.models import KVKey
+from kvform.models import KVKey, KVForm
 
 
 class KVModelMetaclass(type):
@@ -13,6 +13,8 @@ class KVModelMetaclass(type):
 			new_class._meta.concrete_fields = []
 			new_class._meta.fields = []
 			new_class._meta.mandatory_fields = []
+			
+			new_class.model = KVForm.objects.filter(code = model_name)[0]
 			# retrieve all fields for the specified model/form
 			fields = KVKey.objects.filter(kv_form__code = model_name)
 			for f in fields:
@@ -55,6 +57,13 @@ class KVModel(metaclass=KVModelMetaclass):
 
 
 	def save(self, commit = True):
+		"""
+		Must manage a creation of a key
+		Must manage an update of a form
+		
+		:param commit:
+		:return:
+		"""
 		pass
 
 
