@@ -11,6 +11,11 @@ class KVForm(models.Model):
 
 
 class KVInstance(models.Model):
+	"""
+	:Description is a free text describing the form
+	:key is a unique identifier for each compiled and saved form
+	"""
+	kv_form = models.ForeignKey(KVForm, null = False, blank = False, on_delete = models.CASCADE)
 	description = models.CharField(max_length = 100, blank = False, null = False)
 	key = models.CharField(max_length = 50, blank = False, null = False)
 	
@@ -28,6 +33,10 @@ class KVType(models.Model):
 
 
 class KVKey(models.Model):
+	"""
+	This class is the replacement for the field type.
+	The name key comes from Key-Value databases paradigm
+	"""
 	kv_type = models.ForeignKey(KVType, null = False, blank = False, on_delete = models.CASCADE)
 	kv_form = models.ForeignKey(KVForm, null = False, blank = False, on_delete = models.CASCADE)
 	name = models.CharField(max_length = 100, null = False, blank = False)
