@@ -13,6 +13,7 @@ class KVModelMetaclass(type):
 			new_class._meta.concrete_fields = []
 			new_class._meta.fields = []
 			new_class._meta.mandatory_fields = []
+			new_class._meta.fields_field_type = {}
 			# retrieve all fields for the specified model/form
 			fields = KVKey.objects.filter(kv_form__code = model_name)
 			for f in fields:
@@ -21,18 +22,23 @@ class KVModelMetaclass(type):
 				if key_type:
 					if key_type == "CharField":
 						tmp_field = models.CharField(max_length = 100, null = f.null, blank = f.blank, name = f.name)
+						new_class._meta.fields_field_type.update({f.name: 'text'})
 						
 					if key_type == "IntegerField":
 						tmp_field = models.IntegerField(null = f.null, blank = f.blank, name = f.name)
+						new_class._meta.fields_field_type.update({f.name: 'integer'})
 						
 					if key_type == "FloatField":
 						tmp_field = models.FloatField(null = f.null, blank = f.blank, name = f.name)
+						new_class._meta.fields_field_type.update({f.name: 'float'})
 						
 					if key_type == "BooleanField":
 						tmp_field = models.BooleanField(null = f.null, blank = f.blank, name = f.name)
+						new_class._meta.fields_field_type.update({f.name: 'boolean'})
 						
 					if key_type == "NullBooleanField":
 						tmp_field = models.BooleanField(null = f.null, blank = f.blank, name = f.name)
+						new_class._meta.fields_field_type.update({f.name: 'boolean'})
 						
 				if tmp_field:
 					new_class._meta.concrete_fields.append(tmp_field)
@@ -54,8 +60,10 @@ class KVModel(metaclass=KVModelMetaclass):
 		pass
 
 
-	def save(self, commit = True):
-		pass
+	def save(self, commit = True):		
+		for f in self._meta.fields:
+			value = getattr(self, f.name)
+			print(f.name + ": " + str(value))
 
 
 	def validate_unique(self, exclude):
@@ -70,13 +78,13 @@ class KVModel(metaclass=KVModelMetaclass):
 
 	# da capire quale implementare
 	def __repr__(self):
-		return "KVModel"
+		return "KVModel " + self.model_name
 	
 	def __str__(self):
-		return "KVModel"
+		return "KVModel " + self.model_name
 	
 	def __unicode__(self):
-		return "KVModel"
+		return "KVModel " + self.model_name
 	
 	class _meta:
 		private_fields = []
