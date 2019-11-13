@@ -1,14 +1,11 @@
 from django.db import models
-# from kvform import models
-from kvform.models import KVKey, KVForm
+from datetime import datetime
+from kvform.models import KVKey, KVForm, KVInstance, KVValue
 
 
 class KVModelMetaclass(type):
-	def __new__(mcs, name, bases, attrs):
-		new_class = super(KVModelMetaclass, mcs).__new__(mcs, name, bases, attrs)
-		
-		model_name = new_class.get_model_name()
-		
+
+	def __refresh_fields__(model_name, new_class):
 		if model_name is not None:
 			new_class._meta.concrete_fields = []
 			new_class._meta.fields = []
@@ -48,6 +45,14 @@ class KVModelMetaclass(type):
 					new_class._meta.fields.append(tmp_field)
 					if f.null == False:
 						new_class._meta.mandatory_fields.append(tmp_field)
+						
+
+	def __new__(mcs, name, bases, attrs):
+		print("metaclass.__new__")
+		new_class = super(KVModelMetaclass, mcs).__new__(mcs, name, bases, attrs)
+		
+		model_name = new_class.get_model_name()
+		mcs.__refresh_fields__(model_name, new_class)		
 		
 		return new_class
 		
@@ -58,10 +63,18 @@ class KVModel(metaclass=KVModelMetaclass):
 	"""
 
 	model_name = None
+	unique_key = None
 
+	
 	def full_clean(self, exclude, validate_unique):
 		pass
 
+
+	def get_unique_key(self):
+		if self.unique_key:
+			return self.unique_key
+		else:
+			return(datetime.now().strftime("%Y%m%d%H%M%S%f"))
 
 	def save(self, commit = True):
 		"""
@@ -70,11 +83,43 @@ class KVModel(metaclass=KVModelMetaclass):
 		
 		:param commit:
 		:return:
-		"""
+		"""		
+		
+		if not self.unique_key:
+			# unique_key == None => new instance
+			instance = KVInstance()
+			instance.key = self.get_unique_key()
+			instance.kv_form = self.model
+			instance.save()
+			
+			fields = KVKey.objects.filter(kv_form__code = self.model.code)
+			for f in fields:
+				field_type = self._meta.fields_field_type[f.name]
+				value = getattr(self, f.name)
+				tmp_value = KVValue()
+				tmp_value.kv_key = f
+				tmp_value.kv_instance = instance
+				
+				if field_type == "text":
+					tmp_value.value_text = value
+				if field_type == "integer":
+					tmp_value.value_integer = value
+				if field_type == "boolean"	:
+					tmp_value.value_boolean = value
+				if field_type == "float":
+					tmp_value.value_float = value
+				
+				tmp_value.save()
+			
+		else:
+			# update the already existent instance
+			pass
+		
 		for f in self._meta.fields:
-			value = getattr(self, f.name)
-			print(f.name + ": " + str(value))
-            
+			value = getattr(self, f.name)			
+			s = f'{f.name}: {value} --> {self._meta.fields_field_type[f.name]}'
+			print(s)
+
 
 	def validate_unique(self, exclude):
 		pass
