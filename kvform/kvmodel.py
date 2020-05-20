@@ -4,8 +4,8 @@ from kvform.models import KVKey, KVForm, KVInstance, KVValue
 
 
 class KVModelMetaclass(type):
-
-	def __refresh_fields__(model_name, new_class):
+	
+	def __refresh_fields__(new_class, model_name):
 		if model_name is not None:
 			new_class._meta.concrete_fields = []
 			new_class._meta.fields = []
@@ -48,11 +48,11 @@ class KVModelMetaclass(type):
 						
 
 	def __new__(mcs, name, bases, attrs):
-		print("metaclass.__new__")
 		new_class = super(KVModelMetaclass, mcs).__new__(mcs, name, bases, attrs)
+		new_class.__refresh_fields__ = mcs.__refresh_fields__
 		
 		model_name = new_class.get_model_name()
-		mcs.__refresh_fields__(model_name, new_class)		
+		mcs.__refresh_fields__(new_class, model_name)
 		
 		return new_class
 		
@@ -64,7 +64,7 @@ class KVModel(metaclass=KVModelMetaclass):
 
 	model_name = None
 	unique_key = None
-
+	
 	
 	def full_clean(self, exclude, validate_unique):
 		pass
@@ -86,7 +86,7 @@ class KVModel(metaclass=KVModelMetaclass):
 		"""		
 		
 		if not self.unique_key:
-			# unique_key == None => new instance
+			# unique_key == None => new instance and creation of new kvvalue entries
 			instance = KVInstance()
 			instance.key = self.get_unique_key()
 			instance.kv_form = self.model
@@ -131,7 +131,7 @@ class KVModel(metaclass=KVModelMetaclass):
 
 
 
-	# da capire quale implementare
+	# TODO
 	def __repr__(self):
 		return "KVModel " + self.model_name
 	
@@ -144,4 +144,3 @@ class KVModel(metaclass=KVModelMetaclass):
 	class _meta:
 		private_fields = []
 		many_to_many = []
-	
