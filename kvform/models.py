@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 
-class KVForm(models.Model):
+class KVModelName(models.Model):
 	description = models.CharField(max_length = 100, blank = False, null = False)
 	code = models.CharField(max_length = 15, null = False, blank = False)
 	
@@ -10,12 +10,12 @@ class KVForm(models.Model):
 		return self.description
 
 
-class KVInstance(models.Model):
+class KVRecord(models.Model):
 	"""
 	:Description is a free text describing the form
 	:key is a unique identifier for each compiled and saved form
 	"""
-	kv_form = models.ForeignKey(KVForm, null = False, blank = False, on_delete = models.CASCADE)
+	kv_form = models.ForeignKey(KVModelName, null = False, blank = False, on_delete = models.CASCADE)
 	description = models.CharField(max_length = 100, blank = False, null = False)
 	key = models.CharField(max_length = 50, blank = False, null = False)
 	
@@ -32,13 +32,13 @@ class KVType(models.Model):
 		return self.django_type
 
 
-class KVKey(models.Model):
+class KVField(models.Model):
 	"""
 	This class is the replacement for the field type.
 	The name key comes from Key-Value databases paradigm
 	"""
 	kv_type = models.ForeignKey(KVType, null = False, blank = False, on_delete = models.CASCADE)
-	kv_form = models.ForeignKey(KVForm, null = False, blank = False, on_delete = models.CASCADE)
+	kv_model = models.ForeignKey(KVModelName, null = False, blank = False, on_delete = models.CASCADE)
 	name = models.CharField(max_length = 100, null = False, blank = False)
 	null = models.BooleanField(null = False, blank = False, default = False)
 	blank = models.BooleanField(null = False, blank = False, default = False)
@@ -50,10 +50,10 @@ class KVKey(models.Model):
 
 
 class KVValue(models.Model):
-	kv_key = models.ForeignKey(KVKey, null = False, blank = False, on_delete = models.CASCADE)
-	kv_instance = models.ForeignKey(KVInstance, null = False, blank = False, on_delete = models.CASCADE)
+	kv_key = models.ForeignKey(KVField, null = False, blank = False, on_delete = models.CASCADE)
+	kv_instance = models.ForeignKey(KVRecord, null = False, blank = False, on_delete = models.CASCADE)
 	value_integer = models.IntegerField(default = None, null = True, blank = True)
-	value_boolean = models.NullBooleanField(default = None, null = True, blank = True)
+	value_boolean = models.BooleanField(default = None, null = True, blank = True)
 	value_text = models.TextField(default = '', null = True, blank = True)
 	value_float = models.FloatField(default = None, null = True, blank = True)
 	value_file = models.FloatField(default = None, null = True, blank = True)

@@ -1,10 +1,10 @@
 from django.contrib import admin
-from kvform.models import KVType, KVKey, KVForm, KVValue, KVInstance
+from kvform.models import KVType, KVField, KVModelName, KVValue, KVRecord
 
 # Register your models here.
 
 admin.site.register(KVType)
-admin.site.register(KVForm)
-admin.site.register(KVKey)
+admin.site.register(KVModelName)
+admin.site.register(KVField)
 admin.site.register(KVValue)
-admin.site.register(KVInstance)
+admin.site.register(KVRecord)
